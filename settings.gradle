@@ -1,8 +1,21 @@
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
+//        maven {         // add this repo to use snapshots
+//            name 'ossrh-snapshot'
+//            url 'https://oss.sonatype.org/content/repositories/snapshots'
+//        }
+//        maven {  // Only for snapshot artifacts
+//            name 'ossrh-snapshot'
+//            url 'https://oss.sonatype.org/content/repositories/snapshots'
+//        }
+//        jcenter()
+//        flatDir {
+//            dirs 'libs'
+//        }
     }
 }
 dependencyResolutionManagement {
@@ -10,6 +23,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {  // Only for snapshot artifacts
+            name 'ossrh-snapshot'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+        }
+        mavenLocal()
     }
 }
 rootProject.name = "My Application"
