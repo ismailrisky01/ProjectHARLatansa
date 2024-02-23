@@ -13,8 +13,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.ml.*
 import org.tensorflow.lite.DataType
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.support.model.Model
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.nio.ByteBuffer
 import java.util.*
@@ -76,7 +74,7 @@ class MainActivity : AppCompatActivity(),SensorEventListener {
         val dataset = DataSet(acc, gyro, state)
         dataSets.add(dataset)
         stack.insert(dataset)
-        val result = machineLearning.predict(stack.getArray())
+        val result = machineLearning.predict(normalizeData(stack.getArray()))
         Log.d("Latansa",result.toString())
         val text = findViewById<TextView>(R.id.result)
         val textRealtime = findViewById<TextView>(R.id.resultRealtime)
@@ -85,6 +83,8 @@ class MainActivity : AppCompatActivity(),SensorEventListener {
 
         if (mode.getModus()!=""){
             text.text = mode.getModus()
+            Log.d("Latansa Modus",mode.getModus().toString())
+
             mode.clear()
         }else{
 
@@ -112,7 +112,7 @@ enum class State(val category: Int) { SIT(0), STAND(1), WALK(2), SLEEP(3), UPSTA
 //Class untuk membuat tumpukan yang nanti akan dimasukan ke prediksi
 class Stack {
     private val arraylist = ArrayList<Array<Float>>().apply {
-        for (i in 0 until 24) add(arrayOf(0f, 0f, 0f, 0f, 0f, 0f, 1f))
+        for (i in 0 until 128) add(arrayOf(0f, 0f, 0f, 0f, 0f, 0f, 1f))
     }
 
     private fun convert(item:DataSet): Array<Float> {
@@ -124,7 +124,7 @@ class Stack {
     }
 
     fun insert(item: DataSet) {
-        if (arraylist.count() >= 24)
+        if (arraylist.count() >= 128)
             arraylist.removeFirst()
         arraylist.add(convert(item))
     }
@@ -132,6 +132,15 @@ class Stack {
     fun getArray(): Array<Array<Float>> {
         return arraylist.toTypedArray()
     }
+}
+fun normalizeData(data: Array<Array<Float>>): Array<Array<Float>> {
+    val flattenedData = data.flatten()
+    val min = flattenedData.minOrNull() ?: 0.0f // Change to 0.0f to ensure Float type
+    val max = flattenedData.maxOrNull() ?: 1.0f // Change to 1.0f to ensure Float type
+
+    return data.map { row ->
+        row.map { (it - min) / (max - min) }.toTypedArray()
+    }.toTypedArray()
 }
 class Modus{
     private val arrayList = ArrayList<String>()
@@ -197,20 +206,12 @@ fun createBuffer(dataset: Array<Array<Float>>): ByteBuffer {
 
 //Fungsi untuk melakukan pemanggilan Model dan prediksi
 class MachineLearning(context: Context) {
-    val compatList = CompatibilityList()
 
-    val options = if(compatList.isDelegateSupportedOnThisDevice) {
-        // if the device has a supported GPU, add the GPU delegate
-        Model.Options.Builder().setDevice(Model.Device.GPU).build()
-    } else {
-        // if the GPU is not supported, run on 4 threads
-        Model.Options.Builder().setNumThreads(4).build()
-    }
-    private val model = NewModel4.newInstance(context)
-    private val inputLayer = TensorBuffer.createFixedSize(intArrayOf(24, 7), DataType.FLOAT32)
+    private val model = ConvertedModelBaru.newInstance(context)
+    private val inputLayer = TensorBuffer.createFixedSize(intArrayOf(128, 7), DataType.FLOAT32)
 
     fun predict(dataset: Array<Array<Float>>): State? {
-        inputLayer.loadBuffer(createBuffer(dataset), intArrayOf(24, 7))
+        inputLayer.loadBuffer(createBuffer(dataset), intArrayOf(128, 7))
         val output = model.process(inputLayer).outputFeature0AsTensorBuffer
         val list = arrayOf(
             output.getFloatValue(0),
