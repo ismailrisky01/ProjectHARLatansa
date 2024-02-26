@@ -55,9 +55,9 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.2'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.4.2'
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.8.0'
-    implementation 'org.tensorflow:tensorflow-lite:2.10.0-nightly-SNAPSHOT'
+    implementation 'org.tensorflow:tensorflow-lite:2.10.0'
      //This dependency adds the necessary TF op support.
-    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.10.0-nightly-SNAPSHOT'
+    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.10.0'
     implementation 'org.tensorflow:tensorflow-lite:2.10.0'
     implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.10.0'
 //    implementation 'org.tensorflow:tensorflow-lite:0.1.100'
